@@ -13,12 +13,6 @@
     android:background="@drawable/bg"
     tools:context="com.example.g572_528r.wuziqi.MainActivity">
 
-    <Button
-        android:id="@+id/again"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="再来一局"/>
-
     <com.example.g572_528r.wuziqi.WuziqiPanel
         android:id="@+id/wuziqi"
         android:layout_width="match_parent"

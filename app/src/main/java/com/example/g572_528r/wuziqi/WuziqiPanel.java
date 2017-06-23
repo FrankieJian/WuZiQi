@@ -9,12 +9,16 @@ import android.graphics.Point;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import cn.bmob.v3.exception.BmobException;
+import cn.bmob.v3.listener.UpdateListener;
 
 /**
  * Created by g572-528r on 2017/6/13.
@@ -40,6 +44,11 @@ public class WuziqiPanel extends View {
 
     private boolean mIsGameOver;
     private boolean mIsWhiteWinner;
+
+    private String objectId;
+    private boolean isBegin;
+    private Match mMatch = new Match();
+    private boolean isChooseWhite;
 
     public WuziqiPanel(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -89,7 +98,9 @@ public class WuziqiPanel extends View {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        if (mIsGameOver) return false;
+        if (mIsGameOver) {
+            return false;
+        }
 
         int action = event.getAction();
         if (action == MotionEvent.ACTION_UP) {
@@ -98,17 +109,42 @@ public class WuziqiPanel extends View {
 
             Point p = getValidPoint(x, y);
 
-            if (mWhiteArray.contains(p) || mBlackArray.contains(p)) {
-                return false;
-            }
-
-            if (mIsWhite) {
+            if (mIsWhite && isChooseWhite) {
                 mWhiteArray.add(p);
+                mMatch.setWhiteArray(mWhiteArray);
+                Toast.makeText(getContext(), "UpdateListener2222" + objectId, Toast.LENGTH_SHORT).show();
+                mMatch.update(objectId, new UpdateListener() {
+                    @Override
+                    public void done(BmobException e) {
+                        if(e == null){
+                            Log.e("LFJ", "done:222 " + "success" );
+                        }else{
+                            Log.e("lfj", "done:2222 " + "error");
+                        }
+
+                    }
+                });
+                Toast.makeText(getContext(), "setWhiteArray objectId" + objectId, Toast.LENGTH_SHORT).show();
+
             } else {
                 mBlackArray.add(p);
+                mMatch.setBlackArray(mBlackArray);
+                Toast.makeText(getContext(), "UpdateListener33333" + objectId, Toast.LENGTH_SHORT).show();
+                mMatch.update(objectId, new UpdateListener() {
+                    @Override
+                    public void done(BmobException e) {
+                        if(e == null){
+                            Log.e("LFJ", "done:3333 " + "success" );
+                        }else{
+                            Log.e("lfj", "done:3333 " + "error");
+                        }
+
+                    }
+                });
             }
+
             invalidate();
-            mIsWhite = !mIsWhite;
+            // mIsWhite = !mIsWhite;
         }
         return true;
     }
@@ -135,6 +171,13 @@ public class WuziqiPanel extends View {
             mIsGameOver = true;
             mIsWhiteWinner = whiteWin;
             String text = mIsWhiteWinner ? "白棋胜利" : "黑棋胜利";
+            if (mIsWhiteWinner){
+                mMatch.setState(1);
+            }else{
+                mMatch.setState(2);
+            }
+
+            mMatch.update(objectId,null);
             Toast.makeText(getContext(), text, Toast.LENGTH_SHORT).show();
         }
     }
@@ -301,5 +344,31 @@ public class WuziqiPanel extends View {
             return;
         }
         super.onRestoreInstanceState(state);
+    }
+
+    public void sendMatchData(String objectId) {
+        this.objectId = objectId;
+        Toast.makeText(getContext(), "id = " + objectId, Toast.LENGTH_SHORT).show();
+    }
+
+    public void sendIsChooseWhite(boolean isChooseWhite) {
+        this.isChooseWhite = isChooseWhite;
+        Toast.makeText(getContext(), "isChooseWhite" + isChooseWhite, Toast.LENGTH_SHORT).show();
+    }
+
+    public void refreshPieces(ArrayList<Point> whiteArray, ArrayList<Point> blackArray) {
+        this.mWhiteArray = whiteArray;
+        this.mBlackArray = blackArray;
+        invalidate();
+    }
+
+    public void checkWin(int state) {
+        if(1 == state){
+            Toast.makeText(getContext(), "白棋胜利", Toast.LENGTH_SHORT).show();
+            mIsGameOver = true;
+        }else if (2 == state){
+            Toast.makeText(getContext(), "黑棋胜利", Toast.LENGTH_SHORT).show();
+            mIsGameOver = true;
+        }
     }
 }
